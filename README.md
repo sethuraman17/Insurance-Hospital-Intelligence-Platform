@@ -11,6 +11,8 @@ by combining:
 - **LLM reasoning (Groq / LLaMA)**
 - **LangGraph orchestration with memory**
 
+<img width="1247" height="663" alt="image" src="https://github.com/user-attachments/assets/0a63e382-3047-4445-bfb7-6c024f0411f4" />
+
 The system is designed to **avoid hallucinations**, respect **verification status**, and clearly separate **facts from policy interpretation**.
 
 ---
@@ -115,6 +117,8 @@ Wrong coverage claims | Must be supported by PDF text |
 Overconfidence | Verified vs pending is surfaced |
 LLM guessing | SQL is treated as the source of truth |
 
+<img width="1333" height="636" alt="image" src="https://github.com/user-attachments/assets/caf63b17-5f8e-4a5e-8bc7-178c8e47e1e5" />
+
 ---
 
 ## 🧪 Technology Stack
@@ -151,6 +155,8 @@ It is architected like a **real insurance backend**, not a demo chatbot.
 - Regulatory compliance checking
 
 ---
+
+<img width="609" height="363" alt="image" src="https://github.com/user-attachments/assets/c2152c1e-cda0-4c53-a3ac-65a5a485f563" />
 
 ## 🏁 Summary
 
