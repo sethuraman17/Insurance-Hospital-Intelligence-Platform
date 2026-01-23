@@ -1,241 +1,161 @@
-🏥 Insurance–Hospital Intelligence Platform
+# 🏥 Insurance–Hospital Intelligence Platform  
+**Supabase • LangChain • LangGraph • FAISS • LLM**
 
-(Supabase + LangChain + LangGraph + FAISS)
+This project is a production-grade AI system that answers complex insurance and hospital queries such as:
 
-This project is a real-world AI system that answers insurance and hospital questions such as:
-
-“Is KMCH Coimbatore cashless for Bajaj Allianz and is cataract covered?”
+> “Is KMCH Coimbatore cashless for Bajaj Allianz and is cataract covered?”
 
 by combining:
+- **Verified hospital–insurer data (Supabase SQL)**
+- **Insurance policy clauses from PDFs (FAISS + embeddings)**
+- **LLM reasoning (Groq / LLaMA)**
+- **LangGraph orchestration with memory**
 
-Verified hospital–insurer data (Supabase SQL)
+The system is designed to **avoid hallucinations**, respect **verification status**, and clearly separate **facts from policy interpretation**.
 
-Policy clauses from PDFs (FAISS + SentenceTransformers)
-
-LLM reasoning (Groq / LLaMA)
-
-LangGraph for orchestration and memory
-
-It is designed to avoid hallucinations, respect verification status, and clearly separate facts from policy interpretation.
-
-🧠 System Architecture
-┌─────────────────────────┐
-│        User Query       │
-└────────────┬────────────┘
-             │
-     ┌───────▼────────┐
-     │ Intent Router  │
-     │  (LLM / rules) │
-     └───────┬────────┘
-             │
-   ┌─────────▼──────────┐        ┌───────────────┐
-   │ SQL Retriever      │        │ PDF Retriever │
-   │ (Supabase Views)   │        │ (FAISS + ST)   │
-   └─────────┬──────────┘        └───────┬───────┘
-             │                           │
-      ┌──────▼──────────────┐    ┌──────▼──────────────┐
-      │  Fact Normalizer     │    │  Clause Selector    │
-      └─────────┬───────────┘    └─────────┬───────────┘
-                │                            │
-           ┌────▼────────────────────────────▼────┐
-           │        Answer Composer (LLM)           │
-           │  (facts + policy text + confidence)   │
-           └───────────────────────────────────────┘
+---
 
 
-LangGraph executes this pipeline as a stateful decision graph with memory.
+LangGraph executes this flow as a **stateful graph** with memory and branching.
 
-📦 Data Sources
-1️⃣ Structured Data (Supabase)
+---
 
-A fully normalized relational model stores:
+## 📦 Data Sources
 
-Hospitals
+### 1. Structured Data (Supabase)
+A normalized relational schema stores:
+- Hospitals
+- Districts
+- Insurance companies
+- Policies
+- Hospital–insurer empanelments
+- Cashless status
+- Verification status
+- Audit logs
 
-Districts
+All chatbot queries use **read-only views**:
+- `hospital_empanelment_view`
+- `policy_view`
+- `verification_view`
 
-Insurance companies
+This ensures:
+- Human-readable output
+- No accidental writes
+- Strong referential integrity
 
-Policies
+---
 
-Hospital–insurer empanelments
+### 2. Policy Documents (PDF → FAISS)
+The system uses official insurer PDFs:
 
-Verification status
+| Insurer | Document |
+|-------|---------|
+| HDFC ERGO | Total Health Plan |
+| HDFC ERGO | Optima Secure |
+| ICICI Lombard | Health Insurance Brochure |
+| Bajaj Allianz | Silver Health Policy |
 
-Policy mapping
+These PDFs are:
+- Parsed
+- Chunked
+- Embedded with `SentenceTransformers`
+- Indexed in **FAISS**
+- Grouped by policy type
 
-Audit trails
+The system uses **custom FAISS retrieval**, not LangChain’s default retrievers.
 
-All chatbot queries use read-only database views, such as:
+---
 
-hospital_empanelment_view
+## 🧩 LangGraph Design
 
-policy_view
+The chatbot runs as a **LangGraph state machine**.
 
-verification_view
+### State includes:
+- `user_query`
+- `intent`
+- `sql_facts`
+- `retrieved_clauses`
+- `answer`
+- `chat_history`
 
-This guarantees:
+### Graph Nodes:
+| Node | Function |
+|------|--------|
+| `intent` | Detect structured vs document vs hybrid query |
+| `sql_retriever` | Query Supabase views |
+| `pdf_retriever` | Retrieve policy clauses from FAISS |
+| `join` | Merge parallel SQL + PDF results |
+| `adjudicator` | LLM that reasons over both |
+| `memory` | Stores conversation history |
 
-No numeric IDs
+Hybrid questions run SQL and PDF retrieval **in parallel**.
 
-Human-readable data
+---
 
-No accidental writes
-
-Strong referential integrity
-
-2️⃣ Policy Documents (PDF → FAISS)
-
-Official insurance PDFs are parsed and converted into a custom FAISS vector index:
-
-Insurer	Document
-HDFC ERGO	Total Health Plan Policy
-HDFC ERGO	Optima Secure Policy
-ICICI Lombard	Health Insurance Brochure
-Bajaj Allianz	Silver Health Policy
-
-These are:
-
-Chunked
-
-Embedded using SentenceTransformers
-
-Stored in FAISS
-
-Grouped by policy type
-
-The system never uses LangChain’s vectorstore.as_retriever() — it uses direct FAISS + embeddings for full control.
-
-🧩 LangGraph Design
-
-The chatbot is implemented as a LangGraph state machine.
-
-State includes:
-
-user_query
-
-intent
-
-sql_facts
-
-retrieved_clauses
-
-final_answer
-
-chat_history
-
-Nodes:
-Node	Responsibility
-intent	Detect structured vs document vs hybrid query
-sql_retriever	Query Supabase views
-pdf_retriever	Retrieve policy clauses from FAISS
-join	Merge parallel results
-adjudicator	LLM that reasons over both sources
-memory	Stores conversation history
-
-The graph supports parallel SQL + PDF execution for hybrid questions.
-
-🔍 How a Query Is Answered
+## 🔍 How a Query Is Answered
 
 Example:
+> “Is KMCH cashless for Bajaj Allianz and is cataract covered?”
 
-“Is KMCH cashless for Bajaj Allianz and is cataract covered?”
+1. **Intent detection** → Hybrid  
+2. **SQL lookup** → KMCH × Bajaj Allianz, cashless = true, verified = true  
+3. **PDF retrieval** → Cataract coverage clauses  
+4. **LLM adjudication** → Combines facts + clauses  
+5. **Final answer** → With verification & confidence
 
-Step 1 – Intent Routing
+---
 
-Detected as hybrid (hospital + coverage).
+## 🛡 Safety & Reliability
 
-Step 2 – SQL Retrieval (Supabase)
+| Risk | How it is prevented |
+|------|-------------------|
+Hallucinated hospitals | Only Supabase views are used |
+Fake insurer relationships | Foreign keys + verification flags |
+Wrong coverage claims | Must be supported by PDF text |
+Overconfidence | Verified vs pending is surfaced |
+LLM guessing | SQL is treated as the source of truth |
 
-Finds:
+---
 
-KMCH – Bajaj Allianz
-cashless = true
-verified = true
+## 🧪 Technology Stack
 
-Step 3 – PDF Retrieval (FAISS)
+- **Supabase (PostgreSQL, Views, RLS)**
+- **LangChain**
+- **LangGraph**
+- **SentenceTransformers**
+- **FAISS**
+- **Groq (LLaMA-3.1)**
+- **Python**
 
-Finds policy clauses about:
+---
 
-Day care procedures
+## 🚀 Why This Is Not a Toy Project
 
-Cataract surgery
+This system uses:
+- Real hospital and insurer data
+- Real policy documents
+- Legal-style policy reasoning
+- Verification & audit trails
+- Multi-source fact synthesis
 
-Waiting periods
+It is architected like a **real insurance backend**, not a demo chatbot.
 
-Exclusions
+---
 
-Step 4 – Adjudication
+## 📌 Future Extensions
 
-The LLM:
+- Claim eligibility simulation
+- Pre-authorization checks
+- Multi-hospital comparisons
+- Upload-your-policy analysis
+- Regulatory compliance checking
 
-Uses SQL as the source of truth
+---
 
-Uses PDFs for legal interpretation
+## 🏁 Summary
 
-Adds verification & confidence
+This project demonstrates how to safely combine:
 
-Avoids hallucinations
+> **SQL for truth + PDFs for law + LangGraph for reasoning**
 
-Final Answer:
-
-A combined, fact-based, policy-aware explanation.
-
-🛡 Why This System Is Safe
-Risk	How it is prevented
-Hallucinated hospitals	Only SQL views allowed
-Fake insurer relationships	FK + verified flags
-Wrong coverage claims	Must be supported by PDF text
-Overconfidence	Verified vs pending status surfaced
-LLM lying	SQL is authoritative
-🧪 Technologies Used
-
-Supabase (PostgreSQL + Views + RLS)
-
-LangChain (LLM, prompt orchestration)
-
-LangGraph (stateful agent workflow)
-
-SentenceTransformers
-
-FAISS
-
-Groq (LLaMA-3.1)
-
-Python
-
-🚀 Why This Is Not a Toy Project
-
-This system implements:
-
-Real insurer & hospital data
-
-Real policy documents
-
-Legal-style reasoning
-
-Verification & audit trails
-
-Multi-source fact synthesis
-
-It is architected like a real insurance backend, not a demo chatbot.
-
-📌 Future Extensions
-
-Multi-hospital comparisons
-
-Claim eligibility scoring
-
-Pre-authorization simulation
-
-User-uploaded policy PDFs
-
-Regulatory compliance checks
-
-🏁 Summary
-
-This project is a production-grade AI decision system for health insurance and hospital networks, built on:
-
-SQL for truth + PDFs for law + LangGraph for reasoning
-
-It demonstrates how LLMs can be safely used in regulated domains like healthcare and insurance.
+to build an AI system suitable for **regulated domains** like healthcare and insurance.
