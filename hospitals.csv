@@ -1,0 +1,6 @@
+hospital_id,hospital_name,district_id,emergency_24x7
+1,Kovai Medical Center & Hospital (KMCH),1,True
+2,PSG Hospitals,1,True
+3,Sri Ramakrishna Hospital,1,True
+4,Kauvery Hospital – Trichy,2,True
+5,Apollo Speciality Hospital – Trichy,2,True

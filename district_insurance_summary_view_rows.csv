@@ -1,0 +1,22 @@
+district_name,hospital_name,insurance_company_name,cashless,verified
+Coimbatore,Kovai Medical Center & Hospital (KMCH),HDFC ERGO General Insurance,true,true
+Coimbatore,Kovai Medical Center & Hospital (KMCH),Bajaj Allianz General Insurance,true,true
+Coimbatore,Kovai Medical Center & Hospital (KMCH),Bajaj Allianz General Insurance,true,true
+Coimbatore,Kovai Medical Center & Hospital (KMCH),ICICI Lombard General Insurance,true,false
+Coimbatore,Kovai Medical Center & Hospital (KMCH),SBI General Insurance,true,false
+Coimbatore,Kovai Medical Center & Hospital (KMCH),New India Assurance,true,false
+Coimbatore,PSG Hospitals,HDFC ERGO General Insurance,true,false
+Coimbatore,PSG Hospitals,ICICI Lombard General Insurance,true,false
+Coimbatore,PSG Hospitals,SBI General Insurance,true,false
+Coimbatore,PSG Hospitals,Bajaj Allianz General Insurance,true,false
+Coimbatore,Sri Ramakrishna Hospital,HDFC ERGO General Insurance,true,false
+Coimbatore,Sri Ramakrishna Hospital,ICICI Lombard General Insurance,true,false
+Coimbatore,Sri Ramakrishna Hospital,Bajaj Allianz General Insurance,true,false
+Coimbatore,G. Kuppuswamy Naidu Memorial Hospital (GKNM),HDFC ERGO General Insurance,true,false
+Coimbatore,G. Kuppuswamy Naidu Memorial Hospital (GKNM),ICICI Lombard General Insurance,true,false
+Coimbatore,G. Kuppuswamy Naidu Memorial Hospital (GKNM),Bajaj Allianz General Insurance,true,false
+Coimbatore,Kovai Medical Center & Hospital (KMCH),HDFC ERGO General Insurance,true,true
+Tiruchirappalli,Kauvery Hospital – Trichy,Bajaj Allianz General Insurance,true,true
+Tiruchirappalli,Apollo Speciality Hospitals – Trichy,ICICI Lombard General Insurance,true,false
+Tiruchirappalli,Apollo Speciality Hospitals – Trichy,SBI General Insurance,true,false
+Tiruchirappalli,Apollo Speciality Hospitals – Trichy,HDFC ERGO General Insurance,true,false
